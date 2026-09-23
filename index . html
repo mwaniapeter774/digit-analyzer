@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digit Analyzer Pro — Deriv</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0f1115;color:#f4f5f7}
+.wrap{max-width:900px;margin:auto;padding:18px}.card{background:#191c23;border:1px solid #2c313b;border-radius:18px;padding:18px;margin-bottom:14px}
+h1{margin:0 0 6px;font-size:24px}.muted{color:#a8afbb;font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}select,button{border:0;border-radius:10px;padding:12px 14px;font-size:15px}
+select{background:#252a33;color:white;border:1px solid #39404c;flex:1;min-width:180px}
+button{cursor:pointer;background:#f0b90b;color:#111;font-weight:700}.secondary{background:#2b313c;color:#fff}.over{background:#20b26b;color:#fff}.under{background:#e5484d;color:#fff}
+.status{display:inline-flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#777}.live{background:#20b26b}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+.circle{aspect-ratio:1;border-radius:50%;border:3px solid #3a414d;background:#222730;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.circle .digit{font-size:30px;font-weight:800}.circle .pct{font-size:14px;color:#b8c0cc;margin-top:3px}.hot{border-color:#f0b90b}.cold{border-color:#59616e}
+.stats{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:15px;color:#b8c0cc;font-size:13px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.controls button{width:100%}
+.log{max-height:170px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;color:#b8c0cc;line-height:1.7}
+.warn{background:#2b2410;border:1px solid #5b4811;color:#f4d77b;padding:12px;border-radius:12px;font-size:13px}
+@media(max-width:520px){.grid{gap:7px}.circle .digit{font-size:24px}.circle .pct{font-size:11px}.wrap{padding:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card topbar">
+    <div>
+      <div class="brand">DIGIT ANALYZER <span>PRO</span></div>
+      <div class="muted">Deriv live market-data dashboard</div>
+    </div>
+    <div class="row">
+      <span class="status"><span id="dot" class="dot"></span><span id="status">Disconnected</span></span>
+      <button id="connect">CONNECT DERIV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <select id="symbol">
+        <option value="R_10">Volatility 10</option>
+        <option value="R_25" selected>Volatility 25</option>
+        <option value="R_50">Volatility 50</option>
+        <option value="R_75">Volatility 75</option>
+        <option value="R_100">Volatility 100</option>
+        <option value="1HZ10V">Volatility 10 (1s)</option>
+        <option value="1HZ25V">Volatility 25 (1s)</option>
+        <option value="1HZ50V">Volatility 50 (1s)</option>
+        <option value="1HZ75V">Volatility 75 (1s)</option>
+        <option value="1HZ100V">Volatility 100 (1s)</option>
+      </select>
+      <select id="sample">
+        <option value="50">Sample: 50 ticks</option>
+        <option value="100" selected>Sample: 100 ticks</option>
+        <option value="250">Sample: 250 ticks</option>
+        <option value="500">Sample: 500 ticks</option>
+        <option value="1000">Sample: 1000 ticks</option>
+      </select>
+      <button id="reset" class="secondary">RESET</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead">
+      <div><b>LAST DIGIT STATISTICS</b><div class="muted">Live frequency in the selected sample</div></div>
+      <div class="pill">TICKS <b id="count">0</b></div>
+    </div>
+    <div id="grid" class="grid"></div>
+    <div class="stats">
+      <span>Latest: <b id="latest">—</b></span>
+      <span>Most frequent: <b id="most">—</b></span>
+      <span>Least frequent: <b id="least">—</b></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead">
+      <div><b>OVER / UNDER</b><div class="muted">Analysis controls — real execution comes after OAuth setup</div></div>
+      <select id="barrier" style="max-width:130px;min-width:100px">
+        <option value="0">Barrier 0</option><option value="1">Barrier 1</option>
+        <option value="2" selected>Barrier 2</option><option value="3">Barrier 3</option>
+        <option value="4">Barrier 4</option><option value="5">Barrier 5</option>
+        <option value="6">Barrier 6</option><option value="7">Barrier 7</option>
+        <option value="8">Barrier 8</option><option value="9">Barrier 9</option>
+      </select>
+    </div>
+    <div class="tradeGrid">
+      <button class="over trade" id="over">OVER 2</button>
+      <button class="under trade" id="under">UNDER 2</button>
+    </div>
+    <div class="stats bigstats">
+      <span>Observed OVER: <b id="overPct">—</b></span>
+      <span>Observed UNDER: <b id="underPct">—</b></span>
+    </div>
+    <div class="muted note">These are historical sample frequencies, not a prediction of the next tick.</div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead">
+      <div><b>TRADE PANEL</b><div class="muted">Ready for authenticated Deriv execution</div></div>
+      <span class="pill" id="accountState">NOT CONNECTED</span>
+    </div>
+    <div class="formgrid">
+      <label>Stake<input id="stake" type="number" min="0.35" step="0.01" value="1.00"></label>
+      <label>Duration<input id="duration" type="number" min="1" step="1" value="1"></label>
+      <label>Unit<select id="durationUnit"><option>ticks</option><option>seconds</option><option>minutes</option></select></label>
+    </div>
+    <button id="buy" class="buy" disabled>BUY — OAUTH REQUIRED</button>
+    <div class="muted note">For safety, this v2 build cannot place real-money trades yet. The next step is registering your Deriv OAuth app and wiring the authenticated WebSocket.</div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead"><b>RECENT TICKS</b><button id="clearLog" class="secondary">CLEAR</button></div>
+    <div id="log" class="log">Waiting for data…</div>
+  </div>
+
+  <div class="warn">
+    <b>Safety:</b> The dashboard uses public market data and does not ask for your Deriv password. Real trading requires authenticated Deriv API access. Deriv's API uses OAuth 2.0 or scoped personal access tokens for account actions.
+  </div>
+</div>
+
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1015;color:#f5f7fa}
+.wrap{max-width:980px;margin:auto;padding:16px}.card{background:#181c23;border:1px solid #2b313c;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 8px 30px #0002}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px}.brand{font-size:24px;font-weight:900;letter-spacing:.5px}.brand span{color:#f0b90b;font-size:13px}
+.muted{color:#a7afbb;font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select,button,input{border-radius:10px;padding:12px 14px;font-size:14px}select,input{background:#242a33;color:#fff;border:1px solid #3a414d}select{flex:1;min-width:170px}button{border:0;cursor:pointer;background:#f0b90b;color:#111;font-weight:800}.secondary{background:#2b313c;color:#fff}.status{display:flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#666}.live{background:#20b26b}
+.sectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{background:#252b34;border:1px solid #39414d;border-radius:999px;padding:7px 10px;font-size:12px;color:#c9d0da}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}.circle{aspect-ratio:1;border-radius:50%;border:3px solid #3a414d;background:#222730;display:flex;flex-direction:column;align-items:center;justify-content:center}.circle .digit{font-size:32px;font-weight:900}.circle .pct{font-size:14px;color:#bbc3ce}.circle.hot{border-color:#f0b90b;box-shadow:0 0 18px #f0b90b22}.circle.cold{border-color:#59616e}
+.stats{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;color:#aeb6c1;font-size:13px}.stats b{color:#fff}.tradeGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}.trade{font-size:18px;padding:18px}.over{background:#18a765;color:white}.under{background:#df454d;color:white}.bigstats{font-size:15px}.note{margin-top:12px}.formgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.formgrid label{font-size:12px;color:#aeb6c1;display:flex;flex-direction:column;gap:6px}.buy{width:100%;margin-top:12px;background:#3a414d;color:#9fa7b3;cursor:not-allowed}.log{max-height:190px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;color:#b7bfca;line-height:1.7;margin-top:10px}.warn{background:#2b2410;border:1px solid #5b4811;color:#f4d77b;padding:12px;border-radius:12px;font-size:13px}
+@media(max-width:600px){.topbar{align-items:flex-start;flex-direction:column}.grid{gap:7px}.circle .digit{font-size:25px}.circle .pct{font-size:11px}.formgrid{grid-template-columns:1fr}.wrap{padding:10px}}
+</style>
+
+<script>
+const PUBLIC_WS="wss://api.derivws.com/trading/v1/options/ws/public";
+let ws=null,counts=Array(10).fill(0),total=0,recent=[];
+const $=id=>document.getElementById(id);
+
+function selectedSample(){return Number($("sample").value)}
+function render(){
+  $("count").textContent=total;
+  const grid=$("grid");grid.innerHTML="";
+  counts.forEach((n,d)=>{
+    const pct=total?n/total*100:0, e=document.createElement("div");
+    e.className="circle "+(pct>10.5?"hot":pct<9.5&&total>20?"cold":"");
+    e.innerHTML=`<div class="digit">${d}</div><div class="pct">${pct.toFixed(1)}%</div>`;
+    grid.appendChild(e);
+  });
+  if(total){
+    const ord=[...Array(10).keys()].sort((a,b)=>counts[b]-counts[a]);
+    $("most").textContent=ord[0];$("least").textContent=ord[9];
+  }
+  const b=Number($("barrier").value);
+  const over=counts.slice(b+1).reduce((a,v)=>a+v,0), under=counts.slice(0,b+1).reduce((a,v)=>a+v,0);
+  $("overPct").textContent=total?(over/total*100).toFixed(1)+"%":"—";
+  $("underPct").textContent=total?(under/total*100).toFixed(1)+"%":"—";
+  $("over").textContent=`OVER ${b}`;$("under").textContent=`UNDER ${b}`;
+}
+function reset(){counts=Array(10).fill(0);total=0;recent=[];$("latest").textContent="—";$("log").textContent="Waiting for data…";render()}
+function status(s,live=false){$("status").textContent=s;$("dot").className="dot"+(live?" live":"")}
+function addTick(q,pip){
+  let s=(pip!==undefined&&pip!==null)?Number(q).toFixed(Number(pip)):String(q);
+  const ds=s.replace(/\D/g,""),d=ds?Number(ds[ds.length-1]):null;if(d===null)return;
+  counts[d]++;total++;
+  const max=selectedSample();
+  if(total>max){
+    // Rebuild the sample from recent raw digits.
+    recent.unshift({time:new Date().toLocaleTimeString(),q,d});
+    recent=recent.slice(0,max);
+    counts=Array(10).fill(0);recent.forEach(x=>counts[x.d]++);total=recent.length;
+  }else{
+    recent.unshift({time:new Date().toLocaleTimeString(),q,d});recent=recent.slice(0,max);
+  }
+  $("latest").textContent=d;
+  $("log").innerHTML=recent.slice(0,40).map(x=>`${x.time}  ${x.q}  →  ${x.d}`).join("<br>");
+  render();
+}
+function connect(){
+  if(ws)try{ws.close()}catch(e){}
+  reset();status("Connecting…");
+  ws=new WebSocket(PUBLIC_WS);
+  ws.onopen=()=>{status("LIVE",true);ws.send(JSON.stringify({ticks:$("symbol").value,subscribe:1}))};
+  ws.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.error){status("API error");return}if(m.msg_type==="tick"&&m.tick)addTick(m.tick.quote,m.tick.pip_size)}catch(x){}};
+  ws.onerror=()=>status("Connection error");ws.onclose=()=>status("Disconnected");
+}
+$("connect").onclick=connect;$("reset").onclick=reset;$("clearLog").onclick=()=>{$("log").textContent="";recent=[]};
+$("symbol").onchange=connect;$("sample").onchange=reset;$("barrier").onchange=render;
+$("buy").onclick=()=>alert("Real execution will be enabled after Deriv OAuth 2.0 is configured for this web app.");
+render();
+</script>
+</body>
+</html>
