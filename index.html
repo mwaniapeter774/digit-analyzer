@@ -188,5 +188,18 @@ $("symbol").onchange=connect;$("sample").onchange=reset;$("barrier").onchange=re
 $("buy").onclick=()=>alert("Real execution will be enabled after Deriv OAuth 2.0 is configured for this web app.");
 render();
 </script>
-</body>
+<script>
+const DERIV_CLIENT_ID = "34tO5PsjvE2ZZxiu6lXAg";
+const DERIV_REDIRECT_URI =
+  "https://mwaniapeter774.github.io/digit-analyzer/";
+
+function loginWithDeriv() {
+  const authUrl =
+    "https://oauth.deriv.com/oauth2/authorize" +
+    "?app_id=" + encodeURIComponent(DERIV_CLIENT_ID) +
+    "&redirect_uri=" + encodeURIComponent(DERIV_REDIRECT_URI);
+
+  window.location.href = authUrl;<button onclick="loginWithDeriv()">Login with Deriv</button>
+}
+</script>
 </html>
