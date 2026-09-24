@@ -3,10 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Digit Analyzer | Deriv</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
 
 body{
     font-family:Arial,sans-serif;
@@ -50,7 +55,8 @@ body{
     margin-bottom:13px;
 }
 
-select,input{
+select,
+input{
     width:100%;
     padding:13px;
     border-radius:10px;
@@ -59,10 +65,6 @@ select,input{
     color:white;
     font-size:15px;
     outline:none;
-}
-
-select:focus,input:focus{
-    border-color:#ffcc00;
 }
 
 button{
@@ -85,13 +87,6 @@ button:disabled{
     width:100%;
 }
 
-.logout{
-    background:#30394f;
-    color:white;
-    width:100%;
-    margin-top:8px;
-}
-
 .status{
     margin-top:11px;
     padding:11px;
@@ -109,6 +104,11 @@ button:disabled{
 .status.error{
     background:#3b171d;
     color:#ff909c;
+}
+
+.status.warning{
+    background:#332b0b;
+    color:#ffe27a;
 }
 
 .market-select{
@@ -138,27 +138,21 @@ button:disabled{
     margin-top:5px;
 }
 
-.account-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
+.last-digit{
+    text-align:center;
+    margin-top:12px;
 }
 
-.account-box{
-    background:#0e1425;
-    border-radius:11px;
-    padding:14px;
-}
-
-.account-label{
+.last-digit-label{
     color:#8995ad;
-    font-size:11px;
-    margin-bottom:5px;
+    font-size:12px;
 }
 
-.account-value{
-    font-size:20px;
+.last-digit-value{
+    font-size:32px;
     font-weight:bold;
+    color:#ffcc00;
+    margin-top:4px;
 }
 
 .digit-grid{
@@ -189,6 +183,13 @@ button:disabled{
     color:#9ca8c0;
     font-size:12px;
     margin-top:5px;
+}
+
+.history-info{
+    text-align:center;
+    color:#8995ad;
+    font-size:11px;
+    margin-top:12px;
 }
 
 .controls{
@@ -238,14 +239,39 @@ label{
     padding:10px 0 25px;
 }
 
+.hidden{
+    display:none;
+}
+
 @media(max-width:600px){
-    .container{padding:11px}
-    .header h1{font-size:24px}
-    .spot-value{font-size:31px}
-    .digit-grid{gap:5px}
-    .digit-card{padding:11px 3px}
-    .digit-num{font-size:21px}
-    .digit-pct{font-size:10px}
+
+    .container{
+        padding:11px;
+    }
+
+    .header h1{
+        font-size:24px;
+    }
+
+    .spot-value{
+        font-size:31px;
+    }
+
+    .digit-grid{
+        gap:5px;
+    }
+
+    .digit-card{
+        padding:11px 3px;
+    }
+
+    .digit-num{
+        font-size:21px;
+    }
+
+    .digit-pct{
+        font-size:10px;
+    }
 }
 </style>
 </head>
@@ -254,222 +280,167 @@ label{
 
 <div class="container">
 
-<div class="header">
-    <h1>🔢 Digit Analyzer</h1>
-    <p>Live Synthetic Index digit analysis</p>
-</div>
-
-
-<!-- DERIV CONNECTION -->
-<div class="card">
-
-    <div class="title">🔌 Deriv Connection</div>
-
-    <button class="connect" onclick="connectDeriv()">
-        CONNECT DERIV
-    </button>
-
-    <button class="logout" onclick="logoutDeriv()">
-        LOGOUT
-    </button>
-
-    <div id="statusBox" class="status">
-        Connecting to Deriv market data...
+    <div class="header">
+        <h1>🔢 Digit Analyzer</h1>
+        <p>Live Synthetic Index digit analysis</p>
     </div>
 
-</div>
+
+    <!-- CONNECTION -->
+
+    <div class="card">
+
+        <div class="title">
+            📡 Market Data Connection
+        </div>
+
+        <div id="statusBox" class="status">
+            Connecting to Deriv public market data...
+        </div>
+
+    </div>
 
 
-<!-- MARKET SELECTOR -->
-<div class="card">
+    <!-- MARKET -->
 
-    <div class="title">📊 Select Volatility Index</div>
+    <div class="card">
 
-    <select id="marketSelect"
-            class="market-select"
+        <div class="title">
+            📊 Select Volatility Index
+        </div>
+
+        <select
+            id="marketSelect"
             onchange="changeMarket()">
 
-        <option value="">
-            Loading Volatility Indices...
-        </option>
+            <option value="">
+                Loading Volatility Indices...
+            </option>
 
-    </select>
+        </select>
 
-    <div id="marketName" class="market-name">
-        Loading...
-    </div>
+        <div
+            id="marketName"
+            class="market-name">
 
-    <div class="spot">
+            Loading...
 
-        <div class="spot-label">
-            CURRENT SPOT
         </div>
 
-        <div id="currentSpot" class="spot-value">
-            --
-        </div>
 
-    </div>
+        <div class="spot">
 
-</div>
-
-
-<!-- ACCOUNT -->
-<div class="card">
-
-    <div class="title">💰 Account</div>
-
-    <div class="account-grid">
-
-        <div class="account-box">
-            <div class="account-label">BALANCE</div>
-            <div id="balanceDisplay" class="account-value">
-                --
+            <div class="spot-label">
+                CURRENT SPOT
             </div>
-        </div>
 
-        <div class="account-box">
-            <div class="account-label">CURRENCY</div>
-            <div id="currencyDisplay" class="account-value">
+            <div
+                id="currentSpot"
+                class="spot-value">
+
                 --
+
             </div>
+
         </div>
 
-    </div>
 
-</div>
+        <div class="last-digit">
 
+            <div class="last-digit-label">
+                LAST DIGIT
+            </div>
 
-<!-- DIGIT ANALYZER -->
-<div class="card">
+            <div
+                id="lastDigit"
+                class="last-digit-value">
 
-    <div class="title">
-        🔢 Last Digit Distribution
-    </div>
+                --
 
-    <div id="digitGrid" class="digit-grid"></div>
+            </div>
 
-</div>
-
-
-<!-- TRADING PANEL -->
-<div class="card">
-
-    <div class="title">🎯 Trade Panel</div>
-
-    <div class="controls">
-
-        <div>
-            <label>Stake Amount</label>
-            <input
-                id="stakeAmount"
-                type="number"
-                min="0.35"
-                step="0.01"
-                value="1"
-            >
-        </div>
-
-        <div>
-            <label>Digit Barrier</label>
-
-            <select id="digitBarrier">
-
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-
-            </select>
-        </div>
-
-        <div>
-            <label>Contract Type</label>
-
-            <select id="contractType">
-
-                <option value="DIGITOVER">
-                    Digit Over
-                </option>
-
-                <option value="DIGITUNDER">
-                    Digit Under
-                </option>
-
-                <option value="DIGITMATCH">
-                    Digit Matches
-                </option>
-
-                <option value="DIGITDIFF">
-                    Digit Differs
-                </option>
-
-            </select>
         </div>
 
     </div>
 
 
-    <div class="trade-grid">
+    <!-- DIGITS -->
 
-        <button
-            class="proposal"
-            onclick="requestProposal()">
-            GET PROPOSAL
-        </button>
+    <div class="card">
 
-        <button
-            id="confirmButton"
-            class="confirm"
-            onclick="confirmTrade()"
-            disabled>
-            CONFIRM TRADE
-        </button>
+        <div class="title">
+            🔢 Last Digit Distribution
+        </div>
+
+        <div
+            id="digitGrid"
+            class="digit-grid">
+        </div>
+
+        <div
+            id="historyInfo"
+            class="history-info">
+
+            Waiting for ticks...
+
+        </div>
 
     </div>
 
 
-    <div class="warning">
-        ⚠️ GET PROPOSAL only requests a price quote.
-        It does not automatically buy a contract.
-        CONFIRM TRADE sends the purchase request.
+    <!-- INFORMATION -->
+
+    <div class="card">
+
+        <div class="title">
+            ℹ️ Analyzer Status
+        </div>
+
+        <div
+            id="tickInfo"
+            class="status">
+
+            Waiting for live market data...
+
+        </div>
+
     </div>
 
-</div>
 
+    <div class="footer">
 
-<div class="footer">
-    Digit Analyzer • Deriv Synthetic Indices
-</div>
+        Digit Analyzer • Deriv Synthetic Indices
+
+    </div>
 
 </div>
 
 
 <script>
 
-// ============================================================
-// CONFIGURATION
-// ============================================================
+/* ============================================================
+   CONFIGURATION
+============================================================ */
 
 const APP_ID =
     '34tO5PsjvE2ZZxiu6lXAg';
 
-const REDIRECT_URI =
-    'https://digit-analyzer-eight.vercel.app';
+
+/*
+   Public market-data WebSocket.
+
+   No Deriv login is required for:
+   - active_symbols
+   - ticks
+*/
 
 const WS_URL =
     `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 
 
-// ============================================================
-// THE 14 INDICES REQUESTED
-// ============================================================
+/* ============================================================
+   REQUESTED MARKETS
+============================================================ */
 
 const REQUESTED_MARKETS = [
 
@@ -504,9 +475,11 @@ const REQUESTED_MARKETS = [
 ];
 
 
-let ws = null;
+/* ============================================================
+   VARIABLES
+============================================================ */
 
-let isAuthenticated = false;
+let ws = null;
 
 let activeSymbols = [];
 
@@ -520,12 +493,10 @@ let lastDigitHistory = [];
 
 const MAX_HISTORY = 100;
 
-let pendingProposal = null;
 
-
-// ============================================================
-// STATUS
-// ============================================================
+/* ============================================================
+   STATUS
+============================================================ */
 
 function updateStatus(
     message,
@@ -547,9 +518,51 @@ function updateStatus(
 }
 
 
-// ============================================================
-// DIGIT DISPLAY
-// ============================================================
+/* ============================================================
+   TICK INFORMATION
+============================================================ */
+
+function updateTickInfo(
+    message,
+    type = 'info'
+){
+
+    const box =
+        document.getElementById(
+            'tickInfo'
+        );
+
+    if(!box) return;
+
+    box.innerText =
+        message;
+
+    box.className =
+        `status ${type}`;
+}
+
+
+/* ============================================================
+   NORMALIZE MARKET NAME
+============================================================ */
+
+function normalizeName(
+    name
+){
+
+    return String(
+        name || ''
+    )
+    .toLowerCase()
+    .replace(/\s+/g,' ')
+    .trim();
+
+}
+
+
+/* ============================================================
+   RENDER DIGITS
+============================================================ */
 
 function renderDigitStats(
     currentDigit = -1
@@ -564,66 +577,115 @@ function renderDigitStats(
 
     grid.innerHTML = '';
 
+
     const counts =
         Array(10).fill(0);
+
 
     lastDigitHistory.forEach(
         digit => {
 
             if(
+                Number.isInteger(digit) &&
                 digit >= 0 &&
                 digit <= 9
             ){
+
                 counts[digit]++;
+
             }
 
         }
     );
 
+
     const total =
         lastDigitHistory.length;
 
-    for(let i = 0; i <= 9; i++){
 
-        const percentage =
-            total === 0
-            ? '0.0'
-            : (
-                counts[i] /
-                total *
-                100
-            ).toFixed(1);
+    for(
+        let digit = 0;
+        digit <= 9;
+        digit++
+    ){
+
+        let percentage = '0.0';
+
+
+        if(total > 0){
+
+            percentage =
+                (
+                    counts[digit] /
+                    total *
+                    100
+                ).toFixed(1);
+
+        }
+
 
         const card =
             document.createElement(
                 'div'
             );
 
+
         card.className =
-            `digit-card ${
-                i === currentDigit
-                ? 'active'
-                : ''
-            }`;
+            'digit-card';
+
+
+        if(
+            digit === currentDigit
+        ){
+
+            card.classList.add(
+                'active'
+            );
+
+        }
+
 
         card.innerHTML = `
+
             <div class="digit-num">
-                ${i}
+                ${digit}
             </div>
 
             <div class="digit-pct">
                 ${percentage}%
             </div>
+
         `;
 
-        grid.appendChild(card);
+
+        grid.appendChild(
+            card
+        );
+
     }
+
+
+    const info =
+        document.getElementById(
+            'historyInfo'
+        );
+
+
+    if(info){
+
+        info.innerText =
+            total === 0
+            ? 'Waiting for ticks...'
+            : `${total} ticks analyzed`;
+
+    }
+
 }
 
 
-// ============================================================
-// REQUEST ACTIVE SYMBOLS
-// ============================================================
+/* ============================================================
+   REQUEST ACTIVE SYMBOLS
+============================================================ */
 
 function requestActiveSymbols(){
 
@@ -632,8 +694,11 @@ function requestActiveSymbols(){
         ws.readyState !==
         WebSocket.OPEN
     ){
+
         return;
+
     }
+
 
     ws.send(
         JSON.stringify({
@@ -642,28 +707,36 @@ function requestActiveSymbols(){
                 'brief',
 
             req_id:
-                100
+                1
 
         })
     );
+
 }
 
 
-// ============================================================
-// PROCESS ACTIVE SYMBOLS
-// ============================================================
+/* ============================================================
+   PROCESS ACTIVE SYMBOLS
+============================================================ */
 
 function processActiveSymbols(
     symbols
 ){
 
     activeSymbols =
-        symbols || [];
+        Array.isArray(symbols)
+        ? symbols
+        : [];
+
 
     const select =
         document.getElementById(
             'marketSelect'
         );
+
+
+    if(!select) return;
+
 
     select.innerHTML = '';
 
@@ -671,14 +744,17 @@ function processActiveSymbols(
     const matchedMarkets = [];
 
 
+    /*
+       First try exact matching.
+    */
+
     REQUESTED_MARKETS.forEach(
         requestedName => {
 
-            const normalized =
-                requestedName
-                .toLowerCase()
-                .replace(/\s+/g,' ')
-                .trim();
+            const wanted =
+                normalizeName(
+                    requestedName
+                );
 
 
             const match =
@@ -686,100 +762,25 @@ function processActiveSymbols(
                     item => {
 
                         const name =
-                            String(
-                                item.underlying_symbol_name ||
-                                ''
-                            )
-                            .toLowerCase()
-                            .replace(/\s+/g,' ')
-                            .trim();
+                            normalizeName(
+                                item.underlying_symbol_name
+                            );
+
 
                         return (
-                            name === normalized
+                            name === wanted
                         );
+
                     }
                 );
 
 
             if(match){
 
-                matchedMarkets.push(
-                    match
-                );
-
-                const option =
-                    document.createElement(
-                        'option'
-                    );
-
-                option.value =
-                    match.underlying_symbol;
-
-                option.textContent =
-                    match.underlying_symbol_name;
-
-                select.appendChild(
-                    option
-                );
-            }
-        }
-    );
-
-
-    /*
-       Some Deriv responses may use slightly different
-       capitalization/naming. If exact matching misses
-       something, perform a second fuzzy pass.
-    */
-
-    if(
-        matchedMarkets.length <
-        REQUESTED_MARKETS.length
-    ){
-
-        REQUESTED_MARKETS.forEach(
-            requestedName => {
-
-                const already =
-                    matchedMarkets.some(
-                        item =>
-                            item.underlying_symbol_name
-                            === requestedName
-                    );
-
-                if(already) return;
-
-
-                const wanted =
-                    requestedName
-                    .toLowerCase()
-                    .replace(' index','')
-                    .trim();
-
-
-                const match =
-                    activeSymbols.find(
-                        item => {
-
-                            const name =
-                                String(
-                                    item.underlying_symbol_name ||
-                                    ''
-                                )
-                                .toLowerCase()
-                                .replace(' index','')
-                                .trim();
-
-                            return name === wanted;
-                        }
-                    );
-
-
                 if(
-                    match &&
                     !matchedMarkets.some(
-                        item =>
-                            item.underlying_symbol ===
+                        existing =>
+                            existing.underlying_symbol ===
                             match.underlying_symbol
                     )
                 ){
@@ -788,51 +789,166 @@ function processActiveSymbols(
                         match
                     );
 
-                    const option =
-                        document.createElement(
-                            'option'
+                }
+
+            }
+
+        }
+    );
+
+
+    /*
+       Second pass.
+
+       This handles minor naming differences.
+    */
+
+    if(
+        matchedMarkets.length === 0
+    ){
+
+        REQUESTED_MARKETS.forEach(
+            requestedName => {
+
+                const wanted =
+                    normalizeName(
+                        requestedName
+                    )
+                    .replace(
+                        /\s+index$/,
+                        ''
+                    );
+
+
+                const match =
+                    activeSymbols.find(
+                        item => {
+
+                            const name =
+                                normalizeName(
+                                    item.underlying_symbol_name
+                                )
+                                .replace(
+                                    /\s+index$/,
+                                    ''
+                                );
+
+
+                            return (
+                                name === wanted
+                            );
+
+                        }
+                    );
+
+
+                if(match){
+
+                    if(
+                        !matchedMarkets.some(
+                            existing =>
+                                existing.underlying_symbol ===
+                                match.underlying_symbol
+                        )
+                    ){
+
+                        matchedMarkets.push(
+                            match
                         );
 
-                    option.value =
-                        match.underlying_symbol;
+                    }
 
-                    option.textContent =
-                        match.underlying_symbol_name;
-
-                    select.appendChild(
-                        option
-                    );
                 }
 
             }
         );
+
     }
 
 
-    if(!matchedMarkets.length){
+    /*
+       Build dropdown.
+    */
+
+    matchedMarkets.forEach(
+        market => {
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+
+            option.value =
+                market.underlying_symbol;
+
+
+            option.textContent =
+                market.underlying_symbol_name ||
+                market.underlying_symbol;
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    /*
+       No markets found.
+    */
+
+    if(
+        matchedMarkets.length === 0
+    ){
 
         select.innerHTML = `
-            <option>
+
+            <option value="">
                 No requested indices found
             </option>
+
         `;
 
+
         updateStatus(
-            'Deriv returned no matching Volatility indices.',
+            'Connected, but no requested Volatility indices were returned.',
             'error'
         );
 
+
+        updateTickInfo(
+            'No matching markets were found.',
+            'error'
+        );
+
+
+        console.log(
+            'Active symbols returned by Deriv:',
+            activeSymbols
+        );
+
+
         return;
+
     }
 
+
+    /*
+       Select first market.
+    */
 
     selectedSymbol =
         matchedMarkets[0]
         .underlying_symbol;
 
+
     selectedDisplayName =
         matchedMarkets[0]
-        .underlying_symbol_name;
+        .underlying_symbol_name ||
+        selectedSymbol;
 
 
     select.value =
@@ -845,21 +961,22 @@ function processActiveSymbols(
         selectedDisplayName;
 
 
+    updateStatus(
+        `${matchedMarkets.length} Volatility indices loaded.`,
+        'success'
+    );
+
+
     subscribeToMarket(
         selectedSymbol
     );
 
-
-    updateStatus(
-        `${matchedMarkets.length} requested Volatility indices loaded.`,
-        'success'
-    );
 }
 
 
-// ============================================================
-// CHANGE MARKET
-// ============================================================
+/* ============================================================
+   CHANGE MARKET
+============================================================ */
 
 function changeMarket(){
 
@@ -868,13 +985,18 @@ function changeMarket(){
             'marketSelect'
         );
 
+
+    if(!select) return;
+
+
     const symbol =
         select.value;
+
 
     if(!symbol) return;
 
 
-    const selectedOption =
+    const option =
         select.options[
             select.selectedIndex
         ];
@@ -883,8 +1005,9 @@ function changeMarket(){
     selectedSymbol =
         symbol;
 
+
     selectedDisplayName =
-        selectedOption.textContent;
+        option.textContent;
 
 
     document.getElementById(
@@ -893,7 +1016,24 @@ function changeMarket(){
         selectedDisplayName;
 
 
+    /*
+       Reset statistics for new market.
+    */
+
     lastDigitHistory = [];
+
+
+    document.getElementById(
+        'currentSpot'
+    ).innerText =
+        '--';
+
+
+    document.getElementById(
+        'lastDigit'
+    ).innerText =
+        '--';
+
 
     renderDigitStats(-1);
 
@@ -901,12 +1041,13 @@ function changeMarket(){
     subscribeToMarket(
         selectedSymbol
     );
+
 }
 
 
-// ============================================================
-// SUBSCRIBE TO SELECTED MARKET
-// ============================================================
+/* ============================================================
+   SUBSCRIBE TO MARKET
+============================================================ */
 
 function subscribeToMarket(
     symbol
@@ -917,15 +1058,24 @@ function subscribeToMarket(
         ws.readyState !==
         WebSocket.OPEN
     ){
+
+        updateStatus(
+            'WebSocket is not connected.',
+            'error'
+        );
+
         return;
+
     }
 
 
     /*
-       Cancel previous tick subscription
+       Cancel previous subscription.
     */
 
-    if(tickSubscriptionId){
+    if(
+        tickSubscriptionId
+    ){
 
         ws.send(
             JSON.stringify({
@@ -936,15 +1086,40 @@ function subscribeToMarket(
             })
         );
 
+
         tickSubscriptionId =
             null;
+
     }
 
 
     lastDigitHistory = [];
 
+
     renderDigitStats(-1);
 
+
+    document.getElementById(
+        'currentSpot'
+    ).innerText =
+        '--';
+
+
+    document.getElementById(
+        'lastDigit'
+    ).innerText =
+        '--';
+
+
+    updateStatus(
+        `Subscribing to ${selectedDisplayName}...`,
+        'info'
+    );
+
+
+    /*
+       Public tick stream.
+    */
 
     ws.send(
         JSON.stringify({
@@ -956,169 +1131,205 @@ function subscribeToMarket(
                 1,
 
             req_id:
-                200
+                2
 
         })
     );
 
-
-    updateStatus(
-        `Loading live ticks: ${selectedDisplayName}`,
-        'info'
-    );
 }
 
 
-// ============================================================
-// HANDLE TICKS
-// ============================================================
+/* ============================================================
+   HANDLE TICK
+============================================================ */
 
 function handleTick(
     tick
 ){
+
+    if(!tick){
+
+        return;
+
+    }
+
 
     const quote =
         Number(
             tick.quote
         );
 
+
     if(
         !Number.isFinite(
             quote
         )
     ){
+
         return;
+
     }
+
+
+    /*
+       Display actual quote.
+
+       We do not force every market to 3 decimal
+       places because different indices can have
+       different precision.
+    */
+
+    const quoteText =
+        String(
+            tick.quote
+        );
 
 
     document.getElementById(
         'currentSpot'
     ).innerText =
-        quote.toFixed(3);
+        quoteText;
 
 
     /*
-       Deriv's tick response includes the quote.
-       Convert it to the displayed precision and take
-       the final decimal digit.
+       Determine the final displayed decimal digit.
+
+       Example:
+       123.450 -> digit 0
+       123.451 -> digit 1
     */
 
-    const formatted =
-        quote.toFixed(3);
+    let text =
+        quoteText;
+
+
+    if(
+        text.includes('e') ||
+        text.includes('E')
+    ){
+
+        text =
+            quote.toFixed(8);
+
+    }
+
+
+    const digitsOnly =
+        text.replace(
+            /[^0-9]/g,
+            ''
+        );
+
+
+    if(!digitsOnly.length){
+
+        return;
+
+    }
+
+
+    const lastCharacter =
+        digitsOnly[
+            digitsOnly.length - 1
+        ];
+
 
     const lastDigit =
-        parseInt(
-            formatted.slice(-1),
-            10
+        Number(
+            lastCharacter
         );
 
 
     if(
-        Number.isInteger(
+        !Number.isInteger(
             lastDigit
         )
     ){
 
-        lastDigitHistory.push(
-            lastDigit
-        );
+        return;
 
-
-        if(
-            lastDigitHistory.length >
-            MAX_HISTORY
-        ){
-
-            lastDigitHistory.shift();
-        }
-
-
-        renderDigitStats(
-            lastDigit
-        );
     }
+
+
+    document.getElementById(
+        'lastDigit'
+    ).innerText =
+        lastDigit;
+
+
+    /*
+       Store digit.
+    */
+
+    lastDigitHistory.push(
+        lastDigit
+    );
+
+
+    if(
+        lastDigitHistory.length >
+        MAX_HISTORY
+    ){
+
+        lastDigitHistory.shift();
+
+    }
+
+
+    renderDigitStats(
+        lastDigit
+    );
+
+
+    updateStatus(
+        `Live data: ${selectedDisplayName}`,
+        'success'
+    );
+
+
+    updateTickInfo(
+        `Last tick: ${quoteText} • Last digit: ${lastDigit}`,
+        'success'
+    );
+
 }
 
 
-// ============================================================
-// DERIV CONNECTION
-// ============================================================
+/* ============================================================
+   WEBSOCKET
+============================================================ */
 
 function initializeWebSocket(){
+
+    /*
+       Close existing socket first.
+    */
+
+    if(ws){
+
+        try{
+
+            ws.close();
+
+        }catch(error){
+
+            console.log(
+                'Previous socket close error:',
+                error
+            );
+
+        }
+
+    }
+
+
+    updateStatus(
+        'Connecting to Deriv public market data...',
+        'info'
+    );
+
 
     ws =
         new WebSocket(
             WS_URL
-        );
-
-
-    ws.onopen =
-        async () => {
-
-            updateStatus(
-                'Connected to Deriv market data.',
-                'success'
-            );
-
-
-            /*
-               First obtain the currently active
-               symbols from Deriv.
-            */
-
-            requestActiveSymbols();
-
-
-            /*
-               Then process OAuth callback if present.
-            */
-
-            await handleOAuthCallback();
-
-
-            const token =
-                localStorage.getItem(
-                    'deriv_access_token'
-                );
-
-
-            if(token){
-
-                authenticateDeriv(
-                    token
-                );
-            }
-        };
-
-
-    ws.onmessage =
-        event => {
-
-            try{
-
-                const data =
-                    JSON.parse(
-                        event.data
-                    );
-
-
-                // -------------------------
-                // ACTIVE SYMBOLS
-                // -------------------------
-
-                if(
-                    data.msg_type ===
-                    'active_symbols'
-                ){
-
-                    processActiveSymbols(
-                        data.active_symbols
-                    );
-                }
-
-
-                // -------------------------
-                // TICK
-                // -------------------------
-
-           
+ 
